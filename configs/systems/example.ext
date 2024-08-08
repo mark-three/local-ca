@@ -1,0 +1,22 @@
+[ server_cert ]
+# Extensions for server certificates (`man x509v3_config`).
+basicConstraints = CA:FALSE
+nsCertType = server
+nsComment = "OpenSSL Generated Server Certificate"
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer:always
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+#authorityKeyIdentifier=keyid,issuer
+#basicConstraints=CA:FALSE
+#keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = localhost
+DNS.2 = example
+DNS.3 = example.local
+DNS.4 = example.internal
+IP.1 = 127.0.0.1
+IP.2 = 10.10.10.50
+
