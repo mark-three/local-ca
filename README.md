@@ -25,3 +25,14 @@ These scripts are not intended to be production ready or used for anything other
         - NOTE: The pass key requires as password to be used and is not suitable for most services.
         - TODO: Update/simplify this output to be less confusing
     - ./output/systems/example/example.cert.pem
+
+
+## Other Resources
+Tools and resources you should check before using the scripts in this repo.
+
+- https://github.com/pasuder/simple-ca-manager
+- https://arminreiter.com/2022/01/create-your-own-certificate-authority-ca-using-openssl/
+- https://github.com/jtyers/openssl-util
+- https://smallstep.com/certificates/
+    - https://github.com/smallstep/certificates
+- https://letsencrypt.org/docs/certificates-for-localhost/
