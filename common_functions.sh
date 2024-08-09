@@ -10,6 +10,16 @@ msg_header() {
     echo "################################################################"
 }
 
+check_var_not_null() {
+    local variable_name="${1}"
+    local var_value="${2}"
+
+    if [ -z "${var_value}" ]; then
+        echo "Required variable ${variable_name} is empty so program will exit now!"
+        exit 1
+    fi
+}
+
 create_root_ca() {
     msg_header "Create the Root CA"
 
@@ -140,6 +150,14 @@ verify_intermediate_ca() {
     # "${INTERMEDIATE_CA_CHAIN_PATH}"
 }
 
+check_system_config_exists() {
+    local system_name="${1}"
+    local system_ext_path="${BASE_SYSTEM_CONFIGS_DIR}/${system_name}.ext"
+    if [[ ! -f "${system_ext_path}" ]] ; then
+        echo "File ${system_ext_path} does not exist, exitting."
+        exit
+    fi
+}
 
 create_system_cert() {
     local system_name="${1}"
