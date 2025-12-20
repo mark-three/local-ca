@@ -26,6 +26,10 @@ These scripts are not intended to be production ready or used for anything other
         - TODO: Update/simplify this output to be less confusing
     - ./output/systems/example/example.cert.pem
 
+- To replace a system cert
+    - run revoke_system_cert.sh --system SYSTEM_NAME
+    - run create_system_cert.sh --system SYSTEM_NAME
+
 
 ## Other Resources
 Tools and resources you should check before using the scripts in this repo.

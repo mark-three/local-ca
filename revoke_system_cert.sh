@@ -53,6 +53,5 @@ check_var_not_null "SYSTEM_NAME" "${SYSTEM_NAME}"
 # Verify the System config file exists
 check_system_config_exists "${SYSTEM_NAME}"
 
-# Create and verify cert for system with system name
-create_system_cert "${SYSTEM_NAME}"
-verify_system_cert "${SYSTEM_NAME}"
+# Revoke the cert for system with system name
+revoke_system_cert "${SYSTEM_NAME}"

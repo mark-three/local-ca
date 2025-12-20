@@ -171,6 +171,8 @@ create_system_cert() {
     local system_subj_str="/C=${COUNTRY_CODE}/ST=${STATE_PROVINCE_CODE}/O=${ORGANIZATION_NAME}/OU=${SYSTEM_CERTS_OU}/CN=${system_name}"
     local system_ext_path="${BASE_SYSTEM_CONFIGS_DIR}/${system_name}.ext"
 
+    local system_cert_expiry_days=375
+
     # Make the system cert path
     mkdir -p "${system_cert_dir_path}"
 
@@ -205,7 +207,9 @@ create_system_cert() {
         -config "${INTERMEDIATE_CA_CONFIG}" \
         -extensions server_cert \
         -extfile "${system_ext_path}" \
-        -days 375 -notext -md sha256 \
+        -days "${system_cert_expiry_days}" \
+        -notext \
+        -md sha256 \
         -passin "pass:${INTERMEDIATE_KEY_PASS}" \
         -in "${system_signing_request_path}" \
         -out "${system_cert_path}"
@@ -231,3 +235,18 @@ verify_system_cert() {
         "${system_cert_path}"
 }
 
+
+revoke_system_cert() {
+    local system_name="${1}"
+    msg_header "Revoke system cert: ${system_name}"
+
+    local system_cert_dir_path="${BASE_SYSTEMS_DIR}/${system_name}"
+    local system_cert_path="${system_cert_dir_path}/${system_name}.cert.pem"
+    local system_cert_expiry_days=375
+
+    openssl ca \
+        -config "${INTERMEDIATE_CA_CONFIG}" \
+        -passin "pass:${INTERMEDIATE_KEY_PASS}" \
+        -revoke "${system_cert_path}"
+
+}
