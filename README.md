@@ -2,7 +2,7 @@
 
 Set of scripts built from following Jamie Nguyen's great guide on building a local [OpenSSL Certificate Authority](https://jamielinux.com/docs/openssl-certificate-authority/). I highly recommend giving this a read and learning more about how certificate authorities work.
 
-These scripts are not intended to be production ready or used for anything other than removing the annoying "Connection is not secure" messages when accessing internal, self hosted services. Using the certs that these scripts generate does weaken your security posture and all users are to do their own verification and due diligence and the software comes as-is with no warranty. 
+These scripts are not intended to be production ready or used for anything other than removing the annoying "Connection is not secure" messages when accessing internal, self hosted services. Using the certs that these scripts generate does weaken your security posture and all users are to do their own verification and due diligence and the software comes as-is with no warranty.
 
 ## Usage
 - Clone the repo

@@ -1,0 +1,111 @@
+---
+default_language_version:
+  python: python3.12
+
+# exclude: ^(examples|tools|doc)
+# ci:
+#  # format compatible with commitlint
+#  autoupdate_commit_msg: "chore: pre-commit autoupdate"
+#  autoupdate_schedule: monthly
+#  autofix_commit_msg: |
+#    chore: auto fixes from pre-commit.com hooks
+#
+#    for more information, see https://pre-commit.ci
+#  skip:
+#    # https://github.com/pre-commit-ci/issues/issues/55
+#    - pip-compile
+#    - schemas
+#  submodules: true
+# exclude: >
+#  (?x)^(
+#    .config/.*requirements.*|
+#    .vscode/extensions.json|
+#    .vscode/settings.json|
+#    examples/broken/encoding.yml|
+#    examples/broken/encoding.j2|
+#    examples/broken/yaml-with-tabs/invalid-due-tabs.yaml|
+#    examples/playbooks/collections/.*|
+#    examples/playbooks/vars/empty.transformed.yml|
+#    examples/playbooks/vars/empty.yml|
+#    src/ansiblelint/schemas/rulebook.json|
+#    test/schemas/data/licenses.json|
+#    test/schemas/negative_test|
+#    test/schemas/package-lock.json
+#  )$
+
+repos:
+  #################################################################
+  # Generic pre-commit hooks
+  #################################################################
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-shebang-scripts-are-executable
+      - id: pretty-format-json
+        args: [--autofix]
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-xml
+      - id: check-yaml
+      - id: debug-statements
+        language_version: python3
+      - id: destroyed-symlinks
+      - id: detect-aws-credentials
+        args: [--allow-missing-credentials]
+      - id: detect-private-key
+      # - id: double-quote-string-fixer
+      - id: end-of-file-fixer
+        # ignore formatting-prettier to have an accurate prettier comparison
+        exclude: >
+          (?x)^(
+            test/eco/.*.result|
+            examples/yamllint/.*|
+            test/fixtures/formatting-before/.*|
+            test/fixtures/formatting-prettier/.*
+          )$
+      - id: forbid-new-submodules
+      - id: forbid-submodules
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+      - id: name-tests-test
+      - id: no-commit-to-branch
+        args: [--branch, main]
+      - id: requirements-txt-fixer
+      - id: trailing-whitespace
+        exclude: >
+          (?x)^(
+            examples/playbooks/(with-skip-tag-id|unicode).yml|
+            examples/playbooks/example.yml|
+            examples/yamllint/.*|
+            test/eco/.*.result|
+            test/fixtures/formatting-before/.*
+          )$
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.5
+    hooks:
+      - id: forbid-crlf
+      - id: remove-crlf
+      # - id: forbid-tabs
+      # - id: remove-tabs
+      #  args: [--whitespaces-count, '2']
+      # - id: chmod
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.10.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+      - id: commitizen-branch
+        stages: [pre-push]
+
+  #################################################################
+  # Credentials / secrets
+  #################################################################
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.29.1
+    hooks:
+      - id: gitleaks

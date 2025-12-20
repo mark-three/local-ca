@@ -112,7 +112,7 @@ create_intermediate_ca() {
         -passin "pass:${INTERMEDIATE_KEY_PASS}" \
         -key "${INTERMEDIATE_CA_KEY_PATH}" \
         -out "${INTERMEDIATE_CA_SIGN_REQUEST}"
-    
+
     # Create the Intermediate CA cert
     openssl ca \
         -batch \
@@ -123,7 +123,7 @@ create_intermediate_ca() {
         -in "${INTERMEDIATE_CA_SIGN_REQUEST}" \
         -out "${INTERMEDIATE_CA_CERT_PATH}"
     chmod 444 "${INTERMEDIATE_CA_CERT_PATH}"
-    
+
     # Verify the Intermediate CA cert
     openssl x509 -noout -text -in "${INTERMEDIATE_CA_CERT_PATH}"
 
@@ -182,7 +182,7 @@ create_system_cert() {
         -aes256 \
         -passout "pass:${SYSTEM_KEY_PASS}" \
         -out "${system_key_path}" 2048
-    
+
     # Rewrite system key without password
     openssl rsa \
         -passin "pass:${SYSTEM_KEY_PASS}" \
@@ -190,7 +190,7 @@ create_system_cert() {
         -out "${system_key_no_pass_path}"
     # chmod 400 "${system_key_path}"
     # chmod 400 "${system_key_no_pass_path}"
-    
+
     # Create a system signing request
     rm -rf "${system_signing_request_path}"
     openssl req \
@@ -221,7 +221,7 @@ create_system_cert() {
 verify_system_cert() {
     local system_name="${1}"
     msg_header "Verify the cert for system: ${system_name}"
-    
+
     local system_cert_dir_path="${BASE_SYSTEMS_DIR}/${system_name}"
     local system_cert_path="${system_cert_dir_path}/${system_name}.cert.pem"
 
