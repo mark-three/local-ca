@@ -168,6 +168,7 @@ create_system_cert() {
     local system_key_no_pass_path="${system_cert_dir_path}/${system_name}-no-pass.key.pem"
     local system_signing_request_path="${system_cert_dir_path}/${system_name}.csr.pem"
     local system_cert_path="${system_cert_dir_path}/${system_name}.cert.pem"
+    local system_fullchain_path="${system_cert_dir_path}/${system_name}.fullchain.cert.pem"
     local system_subj_str="/C=${COUNTRY_CODE}/ST=${STATE_PROVINCE_CODE}/O=${ORGANIZATION_NAME}/OU=${SYSTEM_CERTS_OU}/CN=${system_name}"
     local system_ext_path="${BASE_SYSTEM_CONFIGS_DIR}/${system_name}.ext"
 
@@ -215,6 +216,14 @@ create_system_cert() {
         -out "${system_cert_path}"
 
     # chmod 444 "${system_cert_path}"
+
+    # Create the fullchain file (leaf + intermediate) for services to serve.
+    # Clients only ship with the root/intermediate as a trust anchor, so the
+    # server must send the intermediate on the wire; serving only the leaf
+    # breaks strict clients (curl/openssl do not fetch missing intermediates
+    # the way browsers do via AIA chasing).
+    cat "${system_cert_path}" \
+        "${INTERMEDIATE_CA_CERT_PATH}" > "${system_fullchain_path}"
 }
 
 
@@ -232,6 +241,13 @@ verify_system_cert() {
     # Verify the system cert has a valid chain of trust
     openssl verify \
         -CAfile "${INTERMEDIATE_CA_CHAIN_PATH}" \
+        "${system_cert_path}"
+
+    # Verify the way a real client does: trust only the root, and rely on the
+    # intermediate being served alongside the leaf (as the fullchain file does)
+    openssl verify \
+        -CAfile "${ROOT_CA_CERT_PATH}" \
+        -untrusted "${INTERMEDIATE_CA_CERT_PATH}" \
         "${system_cert_path}"
 }
 
