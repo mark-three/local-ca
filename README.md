@@ -9,7 +9,7 @@ These scripts are not intended to be production ready or used for anything other
 - Copy .env.example -> .env
 - Update .env values at top of file (private key values and OpenSSL Cert subject values)
 - Run create_root_intermediate_ca.sh to generate the Root CA, the Intermediate CA and the Root-Intermediate Chain CA
-    - The Root-Intermediate Chain CA file (ca-chain.cert.pem) will need to be added as a Certificate Authority in Chrome, Firefox, etc
+    - The Root CA cert (./output/root/certs/ca.cert.pem) will need to be added as a Certificate Authority in Chrome, Firefox, etc - see "Trusting the CA" below
 - Copy ./configs/systems/example.ext and update DNS / IP values at the bottom of the file, for example
     - [alt_names]
       DNS.1 = localhost
@@ -34,7 +34,10 @@ These scripts are not intended to be production ready or used for anything other
 
 Two separate trust stores need the CA installed:
 
-- Browsers (Chrome, Firefox, etc.) use their own trust database (NSS, ~/.pki/nssdb), not the OS one. Import ./output/intermediate/certs/ca-chain.cert.pem as a Certificate Authority in the browser settings.
+- Browsers (Chrome, Firefox, etc.) use their own trust database (NSS, ~/.pki/nssdb), not the OS one. Import the ROOT CA cert (./output/root/certs/ca.cert.pem) as a Certificate Authority in the browser settings.
+    - Do not import ca-chain.cert.pem for this: most browser import paths (Chrome's certificate manager, certutil) only read the FIRST cert in a multi-cert file, so you end up with only the intermediate installed and still have to import the root separately. The root is the trust anchor - with it installed (and services serving the fullchain file) nothing else is needed.
+    - Chrome/Chromium on Linux can also be done from the CLI:
+      certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n "Local Root CA" -i ./output/root/certs/ca.cert.pem
 - CLI tools (curl, openssl, wget, python, etc.) use the system trust store. Run deploy_ca.sh to install the Root and Intermediate CA certs there. Do not copy the files by hand unless you follow these rules, which the script handles for you:
     - update-ca-certificates only ingests files under /usr/local/share/ca-certificates/ ending in .crt - a .pem file is silently ignored (no warning, it just never becomes trusted).
     - Each .crt file must contain exactly one certificate. The hashing step only reads the first cert in a multi-cert file, so installing ca-chain.cert.pem as one file silently drops the root. Install the root and intermediate as separate .crt files.
