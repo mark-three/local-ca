@@ -1,5 +1,20 @@
-output
+# Generated CA tree: private keys, issued certificates, the index and serial
+# state. None of it belongs in git - regenerate with 'just ca' / 'just cert'.
+output/
+
+# Real credentials. .env.example is the tracked template.
 .env
 
-configs/systems
+# Loose key material, wherever it lands.
+*.key
+*.key.pem
+*.p12
+*.pfx
+*.jks
+
+# Per-host cert configs name internal machines; only the example is tracked.
+configs/systems/*
+!configs/systems/example.ext
+
+# Personal scratch notes
 notes.md

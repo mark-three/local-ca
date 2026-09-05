@@ -1,0 +1,30 @@
+---
+# The git hooks only run for someone who has run `just setup`. This runs the
+# same checks on every push and PR so a clone without hooks cannot slip past.
+name: lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # commitizen-branch checks every message in the pushed range, which
+          # needs more than the default single-commit checkout.
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: pre-commit/action@v3.0.1
+        env:
+          # This hook guards local commits; on a CI checkout of main it would
+          # fail every run by design.
+          SKIP: no-commit-to-branch
