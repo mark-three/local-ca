@@ -1,5 +1,9 @@
+# shellcheck shell=bash
 ################################################################
 # Common functions for creating Cert Authorities
+#
+# Sourced by the create_* / revoke_* scripts. Requires .env to have
+# been sourced first.
 ################################################################
 
 msg_header() {
@@ -15,8 +19,28 @@ check_var_not_null() {
     local var_value="${2}"
 
     if [ -z "${var_value}" ]; then
-        echo "Required variable ${variable_name} is empty so program will exit now!"
+        echo "Required variable ${variable_name} is empty so program will exit now!" >&2
         exit 1
+    fi
+}
+
+# Fail early with a useful message if the CA has not been generated yet.
+# Every downstream step (signing, trusting, verifying) needs these two files.
+require_ca_built() {
+    local missing=0
+
+    if [[ ! -f "${ROOT_CA_CERT_PATH}" ]]; then
+        echo "ERROR: Root CA cert not found: ${ROOT_CA_CERT_PATH}" >&2
+        missing=1
+    fi
+    if [[ ! -f "${INTERMEDIATE_CA_CERT_PATH}" ]]; then
+        echo "ERROR: Intermediate CA cert not found: ${INTERMEDIATE_CA_CERT_PATH}" >&2
+        missing=1
+    fi
+
+    if [[ "${missing}" -eq 1 ]]; then
+        echo "Run 'just ca' (or ./create_root_intermediate_ca.sh) first." >&2
+        return 1
     fi
 }
 
@@ -38,7 +62,8 @@ create_root_ca() {
 
     # Copy the Root CA config, using SED to update the template values
     # Escape the CA path slashes for use in SED, note there are other ways to accomplish this, but this worked first
-    local root_ca_dir_esc=$(echo ${ROOT_CA_DIR} | sed 's_/_\\/_g')
+    local root_ca_dir_esc
+    root_ca_dir_esc="$(echo "${ROOT_CA_DIR}" | sed 's_/_\\/_g')"
     local sed_query="s/ROOT_CA_DIR/${root_ca_dir_esc}/g"
     sed "${sed_query}" "${ROOT_CA_CONFIG_INPUT}" > "${ROOT_CA_CONFIG}"
 
@@ -92,7 +117,8 @@ create_intermediate_ca() {
 
     # Copy the Intermediate CA config, using SED to update the template values
     # Escape the CA path slashes for use in SED, note there are other ways to accomplish this, but this worked first
-    local intermediate_ca_dir_esc=$(echo ${INTERMEDIATE_CA_DIR} | sed 's_/_\\/_g')
+    local intermediate_ca_dir_esc
+    intermediate_ca_dir_esc="$(echo "${INTERMEDIATE_CA_DIR}" | sed 's_/_\\/_g')"
     local sed_query="s/INTERMEDIATE_CA_DIR/${intermediate_ca_dir_esc}/g"
     sed "${sed_query}" "${INTERMEDIATE_CA_CONFIG_INPUT}" > "${INTERMEDIATE_CA_CONFIG}"
 
@@ -154,8 +180,9 @@ check_system_config_exists() {
     local system_name="${1}"
     local system_ext_path="${BASE_SYSTEM_CONFIGS_DIR}/${system_name}.ext"
     if [[ ! -f "${system_ext_path}" ]] ; then
-        echo "File ${system_ext_path} does not exist, exitting."
-        exit
+        echo "ERROR: config ${system_ext_path} does not exist." >&2
+        echo "Create it with 'just new-system ${system_name}' and set the DNS/IP entries." >&2
+        exit 1
     fi
 }
 
