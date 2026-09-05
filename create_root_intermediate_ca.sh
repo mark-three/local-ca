@@ -13,6 +13,8 @@ fi
 
 # shellcheck source=.env.example
 source "${BASE_SCRIPT_DIR}/.env"
+# shellcheck source=paths.sh
+source "${BASE_SCRIPT_DIR}/paths.sh"
 # shellcheck source=common_functions.sh
 source "${BASE_SCRIPT_DIR}/common_functions.sh"
 

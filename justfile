@@ -105,6 +105,7 @@ verify NAME:
     #!/usr/bin/env bash
     set -euo pipefail
     source "{{ root }}/.env"
+    source "{{ root }}/paths.sh"
     cert="${BASE_SYSTEMS_DIR}/{{ NAME }}/{{ NAME }}.cert.pem"
     [[ -f "${cert}" ]] || { echo "No certificate at ${cert}" >&2; exit 1; }
     openssl x509 -noout -subject -issuer -dates -ext subjectAltName -in "${cert}"
@@ -119,6 +120,7 @@ list:
     #!/usr/bin/env bash
     set -euo pipefail
     source "{{ root }}/.env"
+    source "{{ root }}/paths.sh"
     if [[ ! -d "${BASE_SYSTEMS_DIR}" ]]; then
         echo "No certificates issued yet."
         exit 0
@@ -178,6 +180,7 @@ uninstall:
     #!/usr/bin/env bash
     set -euo pipefail
     source "{{ root }}/.env"
+    source "{{ root }}/paths.sh"
     echo "This removes ${ROOT_CA_CN} from the system and browser trust stores"
     echo "and deletes ${CA_BASE_DIR}, including every key and issued certificate."
     echo
@@ -198,6 +201,7 @@ clean:
     #!/usr/bin/env bash
     set -euo pipefail
     source "{{ root }}/.env"
+    source "{{ root }}/paths.sh"
     read -r -p "Delete ${CA_BASE_DIR}? Type 'yes' to continue: " confirm
     [[ "${confirm}" == "yes" ]] || { echo "Aborted."; exit 1; }
     rm -rf "${CA_BASE_DIR:?}"
