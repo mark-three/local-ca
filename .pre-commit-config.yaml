@@ -1,111 +1,112 @@
 ---
-default_language_version:
-  python: python3.12
+# Run everything against the working tree with: just lint
+# Install the hooks (including commit-msg and pre-push) with: just setup
 
-# exclude: ^(examples|tools|doc)
-# ci:
-#  # format compatible with commitlint
-#  autoupdate_commit_msg: "chore: pre-commit autoupdate"
-#  autoupdate_schedule: monthly
-#  autofix_commit_msg: |
-#    chore: auto fixes from pre-commit.com hooks
-#
-#    for more information, see https://pre-commit.ci
-#  skip:
-#    # https://github.com/pre-commit-ci/issues/issues/55
-#    - pip-compile
-#    - schemas
-#  submodules: true
-# exclude: >
-#  (?x)^(
-#    .config/.*requirements.*|
-#    .vscode/extensions.json|
-#    .vscode/settings.json|
-#    examples/broken/encoding.yml|
-#    examples/broken/encoding.j2|
-#    examples/broken/yaml-with-tabs/invalid-due-tabs.yaml|
-#    examples/playbooks/collections/.*|
-#    examples/playbooks/vars/empty.transformed.yml|
-#    examples/playbooks/vars/empty.yml|
-#    src/ansiblelint/schemas/rulebook.json|
-#    test/schemas/data/licenses.json|
-#    test/schemas/negative_test|
-#    test/schemas/package-lock.json
-#  )$
+default_language_version:
+  python: python3
+
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+  - pre-push
+
+exclude: |
+  (?x)^(
+    LICENSE|
+    output/.*
+  )$
 
 repos:
   #################################################################
-  # Generic pre-commit hooks
+  # Whitespace and file hygiene
   #################################################################
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-      - id: check-added-large-files
-      - id: check-case-conflict
-      - id: check-executables-have-shebangs
-      - id: check-json
-      - id: check-shebang-scripts-are-executable
-      - id: pretty-format-json
-        args: [--autofix]
-      - id: check-merge-conflict
-      - id: check-symlinks
-      - id: check-toml
-      - id: check-xml
-      - id: check-yaml
-      - id: debug-statements
-        language_version: python3
-      - id: destroyed-symlinks
-      - id: detect-aws-credentials
-        args: [--allow-missing-credentials]
-      - id: detect-private-key
-      # - id: double-quote-string-fixer
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
-        # ignore formatting-prettier to have an accurate prettier comparison
-        exclude: >
-          (?x)^(
-            test/eco/.*.result|
-            examples/yamllint/.*|
-            test/fixtures/formatting-before/.*|
-            test/fixtures/formatting-prettier/.*
-          )$
-      - id: forbid-new-submodules
-      - id: forbid-submodules
       - id: mixed-line-ending
         args: ['--fix=lf']
-      - id: name-tests-test
+      - id: fix-byte-order-marker
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: destroyed-symlinks
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+      - id: forbid-submodules
+      # The CA scripts are destructive enough that changes should go through a
+      # branch and a review, not straight onto main.
       - id: no-commit-to-branch
         args: [--branch, main]
-      - id: requirements-txt-fixer
-      - id: trailing-whitespace
-        exclude: >
-          (?x)^(
-            examples/playbooks/(with-skip-tag-id|unicode).yml|
-            examples/playbooks/example.yml|
-            examples/yamllint/.*|
-            test/eco/.*.result|
-            test/fixtures/formatting-before/.*
-          )$
+
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.5.5
     hooks:
       - id: forbid-crlf
       - id: remove-crlf
-      # - id: forbid-tabs
-      # - id: remove-tabs
-      #  args: [--whitespaces-count, '2']
-      # - id: chmod
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.10.0
-    hooks:
-      - id: commitizen
-        stages: [commit-msg]
-      - id: commitizen-branch
-        stages: [pre-push]
+      # Shell here is indented with spaces throughout; a stray tab in a
+      # heredoc or a config file is always a mistake.
+      - id: forbid-tabs
+      - id: remove-tabs
+        args: [--whitespaces-count, '4']
 
   #################################################################
-  # Credentials / secrets
+  # Shell linting - this repo is almost entirely bash
   #################################################################
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+        # -x lets shellcheck follow `source` into .env.example and the
+        # function libraries instead of warning about them.
+        args: [--external-sources, --severity=warning]
+
+  #################################################################
+  # Credentials and secrets
+  #################################################################
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: detect-private-key
+      - id: detect-aws-credentials
+        args: [--allow-missing-credentials]
+
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.29.1
     hooks:
       - id: gitleaks
+
+  # Content scanners miss a key that has been renamed or moved out of the
+  # ignored directory, so block the paths as well.
+  - repo: local
+    hooks:
+      - id: forbid-secret-files
+        name: forbid committing CA keys, certs and .env
+        entry: hooks/forbid-secret-files.sh
+        language: script
+        pass_filenames: true
+        exclude: |
+          (?x)^(
+            \.env\.example
+          )$
+
+  #################################################################
+  # Conventional Commits
+  #################################################################
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.10.0
+    hooks:
+      # Checks the message of the commit being made.
+      - id: commitizen
+        stages: [commit-msg]
+      # Checks every message in the range being pushed, so a bad message that
+      # was committed with --no-verify still cannot reach the remote.
+      - id: commitizen-branch
+        stages: [pre-push]
+        args: [--rev-range, origin/HEAD..HEAD]

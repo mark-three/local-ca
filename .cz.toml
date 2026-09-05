@@ -1,0 +1,14 @@
+[tool.commitizen]
+# Conventional Commits: <type>(<optional scope>)!: <description>
+#
+# Enforced at commit-msg time and again over the whole pushed range at
+# pre-push, so a message committed with --no-verify still cannot be pushed.
+# Accepted types come from cz_conventional_commits: build, bump, chore, ci,
+# docs, feat, fix, perf, refactor, revert, style, test.
+name = "cz_conventional_commits"
+tag_format = "v$version"
+version_scheme = "semver"
+version = "0.1.0"
+update_changelog_on_bump = true
+# Stay on 0.x: a breaking change bumps the minor, not to 1.0.0.
+major_version_zero = true
